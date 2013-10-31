@@ -1,0 +1,28 @@
+body {
+background-color: #AAAAAA;
+color:222222;
+outline:#111111 solid 2px;
+margin-left: 20px;
+margin-top: 20px;
+margin-right: 20px;
+margin-bottom: 20px;
+padding: 10px;
+}
+tr.list {
+background-color: AAAAAA;
+}
+tr.list:hover {
+background-color: 888888;
+}
+
+a {
+color: 000000;
+text-decoration: none;
+}
+a:visited {
+color: 000000;
+}
+a:hover {
+color: 555555;
+text-decoration: none;
+}

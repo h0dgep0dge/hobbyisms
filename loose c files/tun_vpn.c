@@ -14,8 +14,6 @@
 #include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
-#include <error.h>
-#include <errno.h>
 #include <unistd.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>

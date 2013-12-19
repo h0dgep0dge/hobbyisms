@@ -9,14 +9,14 @@ int field = 0;
 int mode = 0;
 int backlight = 1;
 char days[7][5] = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
+int months[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
 int pin_up = 42;
 int pin_down = 41;
 int pin_left = 43;
 int pin_right = 40;
 int pin_snooze = 36;
-int pin_settime = 37;
-int pin_setalarm = 39;
+int pin_mode = 39;
 int pin_backlight = 38;
 int pin_alarm = 49;
 // Maybe do alarm mode? On/off vs tone?
@@ -29,8 +29,7 @@ void setup() {
   pinMode(pin_left,INPUT_PULLUP);
   pinMode(pin_right,INPUT_PULLUP);
   pinMode(pin_snooze,INPUT_PULLUP);
-  pinMode(pin_settime,INPUT_PULLUP);
-  pinMode(pin_setalarm,INPUT_PULLUP);
+  pinMode(pin_mode,INPUT_PULLUP);
   pinMode(pin_backlight,INPUT_PULLUP);
   pinMode(pin_alarm,OUTPUT);
   cli();
@@ -45,11 +44,8 @@ void setup() {
 }
 
 void loop() {
-  while(vals[0][2] >= 60) vals[0][2] -= 60,vals[0][1]++;
-  while(vals[0][1] >= 60) vals[0][1] -= 60,vals[0][0]++;
-  while(vals[0][0] >= 24) vals[0][0] -= 24,vals[0][3]++;
   if(render == 1) {
-    write_time(mode,vals[mode][0],vals[mode][1],vals[mode][2],vals[mode][3],vals[mode][4],vals[mode][5],vals[mode][6]);
+    write_time(mode,vals[mode][0],vals[mode][1],vals[mode][2],vals[mode][3],vals[mode][4],vals[mode][5],vals[mode][6],field);
     render = 0;
   }
   if(digitalRead(pin_up) == 0) {
@@ -66,17 +62,19 @@ void loop() {
     render = 1;
     while(millis() < s+500) if(digitalRead(pin_down) == 1) break;
   }
-  if(digitalRead(pin_left) == 0) {
+  if(digitalRead(pin_right) == 0) {
     field++;
     field = field%7;
-    while(digitalRead(pin_left) == 0);
+    while(digitalRead(pin_right) == 0);
+    render = 1;
   }
-  if(digitalRead(pin_right) == 0) {
+  if(digitalRead(pin_left) == 0) {
     field--;
     while(field < 0) field = (field+7)%7;
-    while(digitalRead(pin_right) == 0);
+    while(digitalRead(pin_left) == 0);
+    render = 1;
   }
-  if(mode == digitalRead(pin_backlight)) {
+  if(mode == digitalRead(pin_mode)) {
     mode = 1-mode;
     render = 1;
   }
@@ -101,9 +99,12 @@ void loop() {
   if(digitalRead(pin_snooze) == 0) noTone(pin_alarm);
 }
 
-void write_time(int alarm,int hour,int minute,int second,int day_w,int day_i,int month,int year) {
+void write_time(int alarm,int hour,int minute,int second,int day_w,int day_i,int month,int year,int field) {
   Serial3.write(254);
   Serial3.write(1);
+  Serial3.write(254);
+  Serial3.write(128);
+  Serial3.print(field);
   Serial3.write(254);
   Serial3.write(132);
   if(hour < 10) Serial3.print("0");
@@ -129,13 +130,19 @@ void write_time(int alarm,int hour,int minute,int second,int day_w,int day_i,int
     if(month+1 < 10) Serial3.print("0");
     Serial3.print(month+1);
     Serial3.print("/");
-   //if(month < 10) Serial3.print("0");
+    //if(month < 10) Serial3.print("0");
     Serial3.print(year+2000);
   }
 }
 
 ISR(TIMER1_COMPA_vect) {
   vals[0][2]++;
+  while(vals[0][2] >= 60) vals[0][2] -= 60,vals[0][1]++;
+  while(vals[0][1] >= 60) vals[0][1] -= 60,vals[0][0]++;
+  while(vals[0][0] >= 24) vals[0][0] -= 24,vals[0][3] = (vals[0][3]+1)%7,vals[0][4]++;
+  while(vals[0][4] >= get_ceil(4)) vals[0][4] = 0,vals[0][5]++;
+  while(vals[0][5] >= 12) vals[0][5] -= 12,vals[0][6]++;
+  vals[0][6] = vals[0][6]%1000;
   render = 1;
 }
 
@@ -149,6 +156,21 @@ int get_ceil(int field) {
       return 60;
     case 3:
       return 7;
-    // THERE ARE MORE! i'll do them later...     
+    case 4:
+      return get_days_in_month();
+    case 5:
+      return 12;
+    case 6:
+      return 1000;    
   }
+}
+
+int get_days_in_month() {
+  if(vals[0][5] == 1) {
+    if(vals[0][6]%400 == 0) return 29;
+    else if(vals[0][6]%100 == 0) return 28;
+    else if(vals[0][6]%4 == 0) return 29;
+    return 28;
+  }
+  else return months[vals[0][5]];
 }

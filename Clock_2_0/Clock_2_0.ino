@@ -130,7 +130,6 @@ void write_time(int alarm,int hour,int minute,int second,int day_w,int day_i,int
     if(month+1 < 10) Serial3.print("0");
     Serial3.print(month+1);
     Serial3.print("/");
-    //if(month < 10) Serial3.print("0");
     Serial3.print(year+2000);
   }
 }

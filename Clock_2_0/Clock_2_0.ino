@@ -1,14 +1,6 @@
 /*
   An Arduino Mega based alarm clock, written by Robbie Mckennie, 2.0
   What happened to 1.0 you ask? It was a terrible thing that shall never see the light of day.
-  Pin mappings; Probably should be stored in variables, i'm just an idiot
-    Up: 42
-    Down: 41
-    Left: 43
-    Right: 40
-    Snooze: 36
-    Set alarm: 39
-    Backlight: 38
 */
 
 volatile int vals[2][7] = {{0,0,0,0,0,0,0},{0,0,0,0,0,0,0}};
@@ -18,17 +10,29 @@ int mode = 0;
 int backlight = 1;
 char days[7][5] = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
 
+int pin_up = 42;
+int pin_down = 41;
+int pin_left = 43;
+int pin_right = 40;
+int pin_snooze = 36;
+int pin_settime = 37;
+int pin_setalarm = 39;
+int pin_backlight = 38;
+int pin_alarm = 49;
+// Maybe do alarm mode? On/off vs tone?
+
 void setup() {
   Serial.begin(9600);
   Serial3.begin(9600);
-  pinMode(36,INPUT_PULLUP);
-  pinMode(38,INPUT_PULLUP);
-  pinMode(39,INPUT_PULLUP);
-  pinMode(40,INPUT_PULLUP);
-  pinMode(41,INPUT_PULLUP);
-  pinMode(42,INPUT_PULLUP);
-  pinMode(43,INPUT_PULLUP);
-  pinMode(49,OUTPUT);
+  pinMode(pin_up,INPUT_PULLUP);
+  pinMode(pin_down,INPUT_PULLUP);
+  pinMode(pin_left,INPUT_PULLUP);
+  pinMode(pin_right,INPUT_PULLUP);
+  pinMode(pin_snooze,INPUT_PULLUP);
+  pinMode(pin_settime,INPUT_PULLUP);
+  pinMode(pin_setalarm,INPUT_PULLUP);
+  pinMode(pin_backlight,INPUT_PULLUP);
+  pinMode(pin_alarm,OUTPUT);
   cli();
   TCCR1A = 0;
   TCCR1B = 0;
@@ -48,36 +52,36 @@ void loop() {
     write_time(mode,vals[mode][0],vals[mode][1],vals[mode][2],vals[mode][3],vals[mode][4],vals[mode][5],vals[mode][6]);
     render = 0;
   }
-  if(digitalRead(42) == 0) {
+  if(digitalRead(pin_up) == 0) {
     unsigned long s = millis();
     vals[mode][field]++;
     vals[mode][field] = vals[mode][field]%get_ceil(field);
     render = 1;
-    while(millis() < s+500) if(digitalRead(42) == 1) break;
+    while(millis() < s+500) if(digitalRead(pin_up) == 1) break;
   }
-  if(digitalRead(41) == 0) {
+  if(digitalRead(pin_down) == 0) {
     unsigned long s = millis();
     vals[mode][field]--;
     if(vals[mode][field] < 0) vals[mode][field] = (vals[mode][field]+get_ceil(field))%get_ceil(field);
     render = 1;
-    while(millis() < s+500) if(digitalRead(41) == 1) break;
+    while(millis() < s+500) if(digitalRead(pin_down) == 1) break;
   }
-  if(digitalRead(40) == 0) {
+  if(digitalRead(pin_left) == 0) {
     field++;
     field = field%7;
-    while(digitalRead(40) == 0);
+    while(digitalRead(pin_left) == 0);
   }
-  if(digitalRead(43) == 0) {
+  if(digitalRead(pin_right) == 0) {
     field--;
     while(field < 0) field = (field+7)%7;
-    while(digitalRead(43) == 0);
+    while(digitalRead(pin_right) == 0);
   }
-  if(mode == digitalRead(39)) {
+  if(mode == digitalRead(pin_backlight)) {
     mode = 1-mode;
     render = 1;
   }
-  if(backlight != digitalRead(38)) {
-    backlight = digitalRead(38);
+  if(backlight != digitalRead(pin_backlight)) {
+    backlight = digitalRead(pin_backlight);
     switch(backlight) {
       case 0:
         Serial3.write(124);
@@ -93,8 +97,8 @@ void loop() {
         break;
     }
   }
-  if(vals[0][0] == vals[1][0] && vals[0][1] == vals[1][1]) tone(49,2000);
-  if(digitalRead(36) == 0) noTone(49);
+  if(vals[0][0] == vals[1][0] && vals[0][1] == vals[1][1]) tone(pin_alarm,2000);
+  if(digitalRead(pin_snooze) == 0) noTone(pin_alarm);
 }
 
 void write_time(int alarm,int hour,int minute,int second,int day_w,int day_i,int month,int year) {

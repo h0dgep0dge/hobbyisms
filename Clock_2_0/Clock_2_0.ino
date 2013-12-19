@@ -103,12 +103,10 @@ void write_time(int alarm,int hour,int minute,int second,int day_w,int day_i,int
   Serial3.write(254);
   Serial3.write(1);
   Serial3.write(254);
-  Serial3.write(128);
-  Serial3.print(field);
-  Serial3.write(254);
   Serial3.write(132);
   if(hour < 10) Serial3.print("0");
   Serial3.print(hour);
+  Serial3.print(":");
   if(minute < 10) Serial3.print("0");
   Serial3.print(minute);
   Serial3.print(":");

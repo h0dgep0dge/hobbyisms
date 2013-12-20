@@ -11,23 +11,25 @@ int backlight = 1;
 char days[7][5] = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
 int months[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
-int pin_up = 42;
-int pin_down = 41;
-int pin_left = 43;
-int pin_right = 40;
-int pin_snooze = 36;
-int pin_mode = 39;
-int pin_backlight = 38;
-int pin_alarm = 49;
+int pin_up = 42; // Button to increment selected field
+int pin_down = 41; // Button to decrement selected field
+int pin_left = 43; // Button to increment which field is selected
+int pin_right = 40; // Button to decrement which field is selected
+int pin_snooze = 36; // Button to stop the alarm
+int pin_mode = 39; // Button to set the alarm time instead of the real time
+int pin_backlight = 38; // The button to light the backlight
+int pin_alarm = 49; // Put a piezo element or speaker on this pin for an alarm
 // Maybe do alarm mode? On/off vs tone?
 
-Print *p;
-int print_mode = 1; // 0 = LCD,1 = Plain serial
+Print *p; // An object to simplify which serial output is used
+int print_mode = 1; // Decides if it gives plaintext output or SerLCD output. 0 = LCD,1 = Plain
 
 void setup() {
+    // Configure serial and Print object
   Serial.begin(9600);
   Serial3.begin(9600);
   p = &Serial;
+    // Initiate all the pins
   pinMode(pin_up,INPUT_PULLUP);
   pinMode(pin_down,INPUT_PULLUP);
   pinMode(pin_left,INPUT_PULLUP);
@@ -36,6 +38,7 @@ void setup() {
   pinMode(pin_mode,INPUT_PULLUP);
   pinMode(pin_backlight,INPUT_PULLUP);
   pinMode(pin_alarm,OUTPUT);
+    // Set up timer interupts, not even going to try to explain this.
   cli();
   TCCR1A = 0;
   TCCR1B = 0;
@@ -48,10 +51,12 @@ void setup() {
 }
 
 void loop() {
-  if(render == 1) {
+  if(render == 1) { // Render only when needed. Handy to stop the LCD from flickering
     write_time(vals[mode][0],vals[mode][1],vals[mode][2],vals[mode][3],vals[mode][4],vals[mode][5],vals[mode][6],field);
     render = 0;
   }
+     // For all directional buttons: When the  button is pressed, change the corresponding values,
+     // then wait until the button is released or a timeout occurs.
   if(digitalRead(pin_up) == 0) {
     unsigned long s = millis();
     vals[mode][field]++;
@@ -78,10 +83,13 @@ void loop() {
     while(digitalRead(pin_left) == 0);
     render = 1;
   }
+    // When the set mode button changes, change the variable.
+    // This way the variable can always correspond to the button, without needing to re-render all the time
   if(mode == digitalRead(pin_mode)) {
     mode = 1-mode;
     render = 1;
   }
+    // Basically the same deal as the mode, but to stop the SerLCD module being flooded
   if(backlight != digitalRead(pin_backlight)) {
     backlight = digitalRead(pin_backlight);
     switch(backlight) {
@@ -99,9 +107,11 @@ void loop() {
         break;
     }
   }
+    // When the real time and alarm time coincide the alarm goes off
   if(vals[0][0] == vals[1][0] && vals[0][1] == vals[1][1]) tone(pin_alarm,2000);
+    // Stop the alarm when the button is pressed
   if(digitalRead(pin_snooze) == 0) noTone(pin_alarm);
-  if(print_mode == 1) while(Serial.available() > 0) {
+  if(print_mode == 1) while(Serial.available() > 0) { // A convenient way to reset the time from software, for drift testing
     int c;
     c = Serial.read();
     if(c == 'r' || c == 'R') {
@@ -146,6 +156,7 @@ void write_time(int hour,int minute,int second,int day_w,int day_i,int month,int
   if(print_mode == 1) p->println("");
 }
 
+  // The timer interrupt function! Increment the second variable once a second, 'trickle' the increase down, then render
 ISR(TIMER1_COMPA_vect) {
   vals[0][2]++;
   while(vals[0][2] >= 60) vals[0][2] -= 60,vals[0][1]++;
@@ -157,6 +168,7 @@ ISR(TIMER1_COMPA_vect) {
   render = 1;
 }
 
+  // get_ciel and get_days_in_month are helper function to streamline (read: obfuscate) other parts of the program
 int get_ceil(int field) {
   switch(field) {
     case 0:

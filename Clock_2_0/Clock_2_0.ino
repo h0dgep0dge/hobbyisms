@@ -21,9 +21,13 @@ int pin_backlight = 38;
 int pin_alarm = 49;
 // Maybe do alarm mode? On/off vs tone?
 
+Print *p;
+int print_mode = 1; // 0 = LCD,1 = Plain serial
+
 void setup() {
   Serial.begin(9600);
   Serial3.begin(9600);
+  p = &Serial;
   pinMode(pin_up,INPUT_PULLUP);
   pinMode(pin_down,INPUT_PULLUP);
   pinMode(pin_left,INPUT_PULLUP);
@@ -45,7 +49,7 @@ void setup() {
 
 void loop() {
   if(render == 1) {
-    write_time(mode,vals[mode][0],vals[mode][1],vals[mode][2],vals[mode][3],vals[mode][4],vals[mode][5],vals[mode][6],field);
+    write_time(vals[mode][0],vals[mode][1],vals[mode][2],vals[mode][3],vals[mode][4],vals[mode][5],vals[mode][6],field);
     render = 0;
   }
   if(digitalRead(pin_up) == 0) {
@@ -97,39 +101,49 @@ void loop() {
   }
   if(vals[0][0] == vals[1][0] && vals[0][1] == vals[1][1]) tone(pin_alarm,2000);
   if(digitalRead(pin_snooze) == 0) noTone(pin_alarm);
+  if(print_mode == 1) while(Serial.available() > 0) {
+    int c;
+    c = Serial.read();
+    if(c == 'r' || c == 'R') {
+      int i;
+      for(i = 0;i < 7;i++) vals[0][i] = 0;
+    }
+  }
 }
 
-void write_time(int alarm,int hour,int minute,int second,int day_w,int day_i,int month,int year,int field) {
-  Serial3.write(254);
-  Serial3.write(1);
-  Serial3.write(254);
-  Serial3.write(132);
-  if(hour < 10) Serial3.print("0");
-  Serial3.print(hour);
-  Serial3.print(":");
-  if(minute < 10) Serial3.print("0");
-  Serial3.print(minute);
-  Serial3.print(":");
-  if(second < 10) Serial3.print("0");
-  Serial3.print(second);
+void write_time(int hour,int minute,int second,int day_w,int day_i,int month,int year,int field) {
+  if(print_mode == 0) p->write(254);
+  if(print_mode == 0) p->write(1);
+  if(print_mode == 0) p->write(254);
+  if(print_mode == 0) p->write(132);
+  if(hour < 10) p->print("0");
+  p->print(hour);
+  p->print(":");
+  if(minute < 10) p->print("0");
+  p->print(minute);
+  p->print(":");
+  if(second < 10) p->print("0");
+  p->print(second);
+  if(print_mode == 1) p->println("");
   if(mode == 1) {
-    Serial3.write(254);
-    Serial3.write(195);
-    Serial3.print("Set Alarm");
+    if(print_mode == 0) p->write(254);
+    if(print_mode == 0) p->write(195);
+    p->print("Set Alarm");
   }
   else {
-    Serial3.write(254);
-    Serial3.write(193);
-    Serial3.print(days[day_w]);
-    Serial3.print(" ");
-    if(day_i+1 < 10) Serial3.print("0");
-    Serial3.print(day_i+1);
-    Serial3.print("/");
-    if(month+1 < 10) Serial3.print("0");
-    Serial3.print(month+1);
-    Serial3.print("/");
-    Serial3.print(year+2000);
+    if(print_mode == 0) p->write(254);
+    if(print_mode == 0) p->write(193);
+    p->print(days[day_w]);
+    p->print(" ");
+    if(day_i+1 < 10) p->print("0");
+    p->print(day_i+1);
+    p->print("/");
+    if(month+1 < 10) p->print("0");
+    p->print(month+1);
+    p->print("/");
+    p->print(year+2000);
   }
+  if(print_mode == 1) p->println("");
 }
 
 ISR(TIMER1_COMPA_vect) {

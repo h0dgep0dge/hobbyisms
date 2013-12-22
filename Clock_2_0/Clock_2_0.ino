@@ -39,7 +39,7 @@ void setup() {
   pinMode(pin_backlight,INPUT_PULLUP);
   pinMode(pin_alarm,OUTPUT);
     // Set up timer interupts, not even going to try to explain this.
-  /*cli();
+  cli();
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1  = 0;
@@ -47,9 +47,9 @@ void setup() {
   TCCR1B |= (1 << WGM12);
   TCCR1B |= (1 << CS12);
   TIMSK1 |= (1 << OCIE1A);
-  sei();*/
-  pinMode(3,INPUT_PULLUP);
-  attachInterrupt(1,increment,RISING);
+  sei();
+  //pinMode(3,INPUT);
+  //attachInterrupt(1,increment,RISING);
 }
 
 void loop() {
@@ -159,7 +159,7 @@ void write_time(int hour,int minute,int second,int day_w,int day_i,int month,int
 }
 
   // The timer interrupt function! Increment the second variable once a second, 'trickle' the increase down, then render
-/*ISR(TIMER1_COMPA_vect) {
+ISR(TIMER1_COMPA_vect) {
   vals[0][2]++;
   while(vals[0][2] >= 60) vals[0][2] -= 60,vals[0][1]++;
   while(vals[0][1] >= 60) vals[0][1] -= 60,vals[0][0]++;
@@ -168,7 +168,7 @@ void write_time(int hour,int minute,int second,int day_w,int day_i,int month,int
   while(vals[0][5] >= 12) vals[0][5] -= 12,vals[0][6]++;
   vals[0][6] = vals[0][6]%1000;
   render = 1;
-}*/
+}/*
 void increment() {
   vals[0][2]++;
   while(vals[0][2] >= 60) vals[0][2] -= 60,vals[0][1]++;
@@ -178,7 +178,7 @@ void increment() {
   while(vals[0][5] >= 12) vals[0][5] -= 12,vals[0][6]++;
   vals[0][6] = vals[0][6]%1000;
   render = 1;
-}
+}*/
   // get_ciel and get_days_in_month are helper function to streamline (read: obfuscate) other parts of the program
 int get_ceil(int field) {
   switch(field) {

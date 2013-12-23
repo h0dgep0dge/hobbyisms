@@ -22,13 +22,13 @@ int pin_alarm = 49; // Put a piezo element or speaker on this pin for an alarm
 // Maybe do alarm mode? On/off vs tone?
 
 Print *p; // An object to simplify which serial output is used
-int print_mode = 1; // Decides if it gives plaintext output or SerLCD output. 0 = LCD,1 = Plain
+int print_mode = 0; // Decides if it gives plaintext output or SerLCD output. 0 = LCD,1 = Plain
 
 void setup() {
     // Configure serial and Print object
   Serial.begin(9600);
   Serial3.begin(9600);
-  p = &Serial;
+  p = &Serial3;
     // Initiate all the pins
   pinMode(pin_up,INPUT_PULLUP);
   pinMode(pin_down,INPUT_PULLUP);

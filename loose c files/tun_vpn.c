@@ -19,6 +19,7 @@
 #include <linux/if_tun.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
 
 int run = 1;
 
@@ -34,11 +35,6 @@ int configure_tun(const char *if_name,struct addrs addresses,int master);
 void io_tun(int tun,int sock);
 void usage(char *name);
 void missing(char *message,char *name);
-
-void handler() {
-	printf("QUITTING \n");
-	run = 0;
-}
 
 int main(int argc,char *argv[]) {
 	int sock,opt;
@@ -169,7 +165,7 @@ void r_listen(int sock,short port,char *master_addr,char *slave_addr) {
 	if(bind(sock,(struct sockaddr *)&bind_addr,sizeof(bind_addr)) < 0) error(1,errno,"Bind");
 	
 	while(confd == 0) {
-		int len = sizeof(client_addr);
+		unsigned int len = sizeof(client_addr);
 		if((r = recvfrom(sock,buf,9,0,(struct sockaddr *)&client_addr,&len)) < 0) error(1,errno,"Recv on line %i",__LINE__);
 		if(strncmp(buf,"CONFIGURE",9) == 0) {
 			if((r = connect(sock,(struct sockaddr *)&client_addr,sizeof(client_addr))) < 0) error(1,errno,"Connect on line %i",__LINE__);
@@ -229,7 +225,7 @@ int configure_tun(const char *if_name,struct addrs addresses,int master) {
 void io_tun(int tun,int sock) {
 	struct timeval time;
 	fd_set select_set;
-	int len,size;
+	int len;
 	char buf[2000];
 	
 	while(1) {

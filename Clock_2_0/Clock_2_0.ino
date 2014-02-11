@@ -11,14 +11,23 @@ int backlight = 1;
 char days[7][5] = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
 int months[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
-int pin_up = 42; // Button to increment selected field
-int pin_down = 41; // Button to decrement selected field
-int pin_left = 43; // Button to increment which field is selected
-int pin_right = 40; // Button to decrement which field is selected
-int pin_snooze = 36; // Button to stop the alarm
-int pin_mode = 39; // Button to set the alarm time instead of the real time
-int pin_backlight = 38; // The button to light the backlight
-int pin_alarm = 49; // Put a piezo element or speaker on this pin for an alarm
+/*
+  Pun mappings on my clock shield
+  4 3 2
+    5
+   7 6
+    8
+  alarm: 9
+*/
+
+int pin_up = 5; // Button to increment selected field
+int pin_down = 8; // Button to decrement selected field
+int pin_left = 7; // Button to increment which field is selected
+int pin_right = 6; // Button to decrement which field is selected
+int pin_snooze = 4; // Button to stop the alarm
+int pin_mode = 3; // Button to set the alarm time instead of the real time
+int pin_backlight = 2; // The button to light the backlight
+int pin_alarm = 9; // Put a piezo element or speaker on this pin for an alarm
 // Maybe do alarm mode? On/off vs tone?
 
 Print *p; // An object to simplify which serial output is used
@@ -28,7 +37,7 @@ void setup() {
     // Configure serial and Print object
   Serial.begin(9600);
   Serial3.begin(9600);
-  p = &Serial3;
+  p = &Serial;
     // Initiate all the pins
   pinMode(pin_up,INPUT_PULLUP);
   pinMode(pin_down,INPUT_PULLUP);
@@ -94,17 +103,17 @@ void loop() {
     // Basically the same deal as the mode, but to stop the SerLCD module being flooded
   if(backlight != digitalRead(pin_backlight)) {
     backlight = digitalRead(pin_backlight);
-    switch(backlight) {
+    if(mode == 0) switch(backlight) {
       case 0:
-        Serial3.write(124);
+        p->write(124);
         delay(50);
-        Serial3.write(157);
+        p->write(157);
         delay(50);
         break;
       case 1:
-        Serial3.write(0x7C);
+        p->write(0x7C);
         delay(50);
-        Serial3.write(128);
+        p->write(128);
         delay(50);
         break;
     }

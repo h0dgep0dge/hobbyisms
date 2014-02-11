@@ -1,5 +1,5 @@
 build: clean
-	gcc -Wall iofs.c -D_FILE_OFFSET_BITS=64 -I/usr/include/fuse  -pthread -L/lib -lfuse -lrt -ldl -o iofs.out
+	gcc -Wall iofs.c `pkg-config fuse --cflags --libs` -o iofs.out
 
 test: build
 	./iofs mnt

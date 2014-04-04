@@ -3,14 +3,17 @@
 #define OUTPUT 1
 #define INPUT 0
 
+#define HIGH 1
+#define LOW 0
+
 #include <fuse.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 
-int iofs_mode[14] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-int iofs_value[14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int iofs_mode[14] = {OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT};
+int iofs_value[14] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW};
 
 static int iofs_getattr(const char *path, struct stat *stbuf) {
 	int i;
@@ -71,23 +74,11 @@ static int iofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off
 	return 0;
 }
 
-static int iofs_open(const char *path, struct fuse_file_info *fi)
-{
-	return 0;//-ENOENT;
-}
-
 static int iofs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
 	size_t len,s;
 	int i;
-	// len = strlen(iofs_str);
-	// if (offset < len) {
-		// if (offset + size > len)
-			// size = len - offset;
-		// memcpy(buf, iofs_str + offset, size);
-	// } else
-		// size = 0;
 	for(i = 0;i < 14;i++) {
 		char filename[20];
 		char value[5];
@@ -150,13 +141,38 @@ int iofs_open(const char *path,struct fuse_file_info *fi) {
 	return -ENOENT;
 }
 
+int iofs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	int i,mode;
+	if(offset > 0) return size;
+	if(size <= 0) return 0;
+	if(buf[0] != '0' && buf[0] != '1') return -EINVAL;
+	
+	for(i = 0;i < 14;i++) {
+		char filename[20];
+		snprintf(filename,20,"/mode/pin_%i",i);
+		mode = 0;
+		if(strcmp(path,filename) == 0) {
+			
+			return size;
+		}
+		snprintf(filename,20,"/value/pin_%i",i);
+		mode = 1;
+		if(strcmp(path,filename) == 0) {
+			
+			return size;
+		}
+	}
+	return -ENOENT;
+}
+
 static struct fuse_operations iofs_oper = {
 	.getattr	= iofs_getattr,
 	.readdir	= iofs_readdir,
 	.open		= iofs_open,
 	.read		= iofs_read,
 	.unlink		= iofs_unlink,
-	.create		= iofs_create
+	.create		= iofs_create,
+	.write		= iofs_write
 };
 
 int main(int argc, char *argv[]) {

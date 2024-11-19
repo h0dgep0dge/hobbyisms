@@ -4,4 +4,8 @@ Virtualbox has a cool feature called the UDPTunnel network driver, which wraps u
 
 But wait! An ethernet frame wrapped in a udp packet? That sounds like that thing you can do by calling socat with a udp address and a tuntap address, so turns out you even get networking between VMs and real computers for free, using socat.
 
-socat udp:1.2.3.4:31337 TUN:iff-no-pi
+socat udp:1.2.3.4:31337 TUN,iff-no-pi,tun-type=tap
+
+or if you prefer to let socat configure the interface for you
+
+socat udp:1.2.3.4:31337 TUN:192.168.0.10/24,up,iff-no-pi,tun-type=tap

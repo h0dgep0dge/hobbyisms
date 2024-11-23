@@ -14,7 +14,7 @@ while True:
     e = Ether(message)
     src_mac = e.src
     dst_mac = e.dst
-    print(src_mac,"->",type(dst_mac))
+    #print(src_mac,"->",dst_mac)
     
     if src_mac not in macs:
         macs[src_mac] = address

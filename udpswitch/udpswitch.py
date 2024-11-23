@@ -23,8 +23,7 @@ while True:
     if address not in endpoints:
         endpoints.append(address)
 
-
-    if dst_mac not in macs or dst_mac == "ff:ff:ff:ff:ff:ff":
+    if dst_mac not in macs or dst_mac == b"\xff\xff\xff\xff\xff\xff":
         for addr in endpoints:
             if addr != address:
                 serverSocket.sendto(message,addr)

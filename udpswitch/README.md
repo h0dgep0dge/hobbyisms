@@ -14,10 +14,10 @@ or if you prefer to let socat configure the interface for you
 socat udp:1.2.3.4:31337 TUN:192.168.0.10/24,up,iff-no-pi,tun-type=tap
 ```
 
-As often happens, a problem you thought needed to be solved with a custom piece of software can be solved with a socat one-liner. The following line creates a udp listener, and each new connection spawns a tap interface.
+As often happens, a problem I thought needed to be solved with a custom piece of software can be solved with a socat one-liner. The following line creates a udp listener, and each new connection spawns a tap interface.
 
 ```bash
 sudo socat -4 --experimental udp-listen:31337,fork tun,up,iff-no-pi,tun-type=tap,netns=bridge
 ```
 
-These interfaces can be bridged together, allowing the kernel to take care of STP, forwarding tables, and all the rest of it. At the time of writing this isn't done automatically, but wouldn't that be something
+This incarnation had a drawback, which is that the interfaces needed to be manually bridged together to act as a switch. So I've written yet another version, still using socat, but this time flanked by some shell script that sets up a bridge and a dedicated network namespace, and automatically adds each newly created TAP to the bridge.
